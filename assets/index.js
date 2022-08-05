@@ -1,4 +1,8 @@
 $(function() {
+    const SPRITE_AREA_SIDE_LENGTH = $("#sprite-area").width();
+    let spritesheetWidth = parseInt($("#spritesheet").width());
+    let spritesheetHeight = parseInt($("#spritesheet").height());
+
     // Updates the spritesheets configuration.
     $("#button-done").click(function (e) { 
         e.preventDefault();
@@ -6,21 +10,10 @@ $(function() {
         const width = $("#input-width").val();
         const height = $("#input-height").val();
         const isPixelart = $("#input-pixelart").prop("checked");
-        if (width < 1 || height < 1) return;
 
-        const maxSize = $("#sprite-area").width();
-        if (width == height) {
-            const widthMultiplier = maxSize / width;
+        if (width === "" || height === "") return;
 
-            $("#spritesheet").width($("#spritesheet").width() * widthMultiplier);
-            $("#sprite-mask").width(width * widthMultiplier);
-        }
-
-        $("#spritesheet").width() / width; // horizontal-frames
-        $("#spritesheet").height() / height; // vertical-frames
-
-        // $("#sprite-mask").width($("#input-width").val());
-        // $("#sprite-mask").height($("#input-height").val());
+        updateFrameSize(parseInt(width), parseInt(height));
 
         if (isPixelart){
             $("#spritesheet").addClass("pixelart");
@@ -39,7 +32,10 @@ $(function() {
 
             // Updates spritesheet's image and the sprite's mask size.
             $.when($("#spritesheet").attr("src", uploadedImage)).then(function() {
-                // updateMaskSize($("#spritesheet").width(), $("#spritesheet").height())
+                $("#spritesheet").css("width", "").css("height", "");
+                spritesheetWidth = parseInt($("#spritesheet").width());
+                spritesheetHeight = parseInt($("#spritesheet").height());
+                updateFrameSize(spritesheetWidth, spritesheetHeight);
             });
         });
 
@@ -47,27 +43,38 @@ $(function() {
         reader.readAsDataURL(this.files[0]);
     });
 
-    function updateMaskSize(width, height) {
-        // Updates the sprite's mask size.
-        
-        const maxSize = $("#sprite-area").width();
+    function updateFrameSize(width, height) {
+        // Updates the size of the displayed frame.
+        // 
+        // width: new frame width (INT).
+        // height: new frame height (INT).
+
+        if (width < 1 || height < 1 || width > spritesheetWidth || height > spritesheetHeight) return;
+
+        const spritesheet = $("#spritesheet");
         const spriteMask = $("#sprite-mask");
+        const longestSide = width > height ? width : height;
+        const multiplier = SPRITE_AREA_SIDE_LENGTH / longestSide;
+        
+        $(spriteMask).css("width", "").css("height", "");
+        $(spritesheet).css("width", "").css("height", "");
 
         if (width === height) {
-            $(spriteMask).width(width).height(height);
-            return;
+            $(spritesheet).width(spritesheetWidth * multiplier);
         }
-
-        const biggestSide = width > height ? width : height;
-        const smallestSide = width < height ? width : height;
-        const smallSize = smallestSide * maxSize / biggestSide;
-
-        if (width > height) {
-            $(spriteMask).width(maxSize);
-            $(spriteMask).height(smallSize);
-        } else {
-            $(spriteMask).height(maxSize);
-            $(spriteMask).width(smallSize);
+        else if (width > height) {
+            $(spritesheet).width(spritesheetWidth * multiplier);
+            $(spriteMask)
+                .width(SPRITE_AREA_SIDE_LENGTH)
+                .height(SPRITE_AREA_SIDE_LENGTH * height / width);
+        }
+        else {
+            $(spritesheet).height(spritesheetHeight * multiplier);
+            $(spriteMask)
+                .height(SPRITE_AREA_SIDE_LENGTH)
+                .width(SPRITE_AREA_SIDE_LENGTH * width / height);
         }
     }
+
+    updateFrameSize(spritesheetWidth, spritesheetHeight);
 });
