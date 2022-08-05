@@ -1,0 +1,12 @@
+#sprite-area {
+    width: 300px;
+    height: 300px;
+}
+#sprite-mask {
+    background-color: burlywood;
+    height: 300px;
+    overflow: hidden;
+}
+.pixelart {
+    image-rendering: pixelated;
+}
