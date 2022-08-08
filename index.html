@@ -12,10 +12,35 @@
         rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" 
         crossorigin="anonymous"
     >
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;400&display=swap" rel="stylesheet">
+    <!-- CSS -->
     <link href="assets/index.css" rel="stylesheet">
 </head>
-<body class="col-md-8 mx-auto py-md-5">
-    <div id="sprite-area" class="mx-auto my-4">
+<body class="col-md-8 mx-auto p-4 px-md-0 py-md-5">
+    <header class="d-flex mb-5 pb-4 border-bottom">
+        <a href="" class="d-flex gap-3 align-items-center text-dark text-decoration-none">
+            <svg width="42" height="70" viewBox="0 0 30 50">
+                <title>Anima Logo</title>
+                <g>
+                    <path 
+                        style="fill:#ff0063;fill-opacity:1;stroke-width:12.6492;stroke-linejoin:round"
+                        d="M 0 0 L 0 188.97656 L 37.794922 188.97656 L 37.794922 113.38672 L 75.589844 113.38672 L 75.589844 188.97656 L 113.38477 188.97656 L 113.38477 0 L 75.589844 0 L 37.794922 0 L 0 0 z M 37.794922 37.796875 L 75.589844 37.796875 L 75.589844 75.591797 L 37.794922 75.591797 L 37.794922 37.796875 z "
+                        transform="scale(0.26458333)" 
+                    />
+                </g>
+            </svg>
+            <span>
+                <span class="fs-1">Anima</span>
+                <br><span class="fs-6 text-muted">Spritesheet. Upload. Animate.</span>
+            </span>
+        </a>
+    </header>
+
+    <!-- Spritesheet Area -->
+    <div id="sprite-area" class="mx-auto mb-5">
         <div id="sprite-mask">
             <img id="spritesheet" class="pixelart" src="assets/default_spritesheet.png" alt="Spritesheet">
         </div>
@@ -47,6 +72,7 @@
         <input id="input-image" class="form-control" type="file" accept="image/jpeg, image/png, image/jpg">
     </div>
 
+    <!-- Upload Spritesheet -->
     <button id="button-done" class="btn btn-secondary" type="button">Done</button>
 
     <!-- JQuery minified -->

@@ -1,11 +1,22 @@
+:root {
+    --sprite-area-side-lenght: 300px;
+}
+span {
+    font-family: 'Roboto', sans-serif;
+    line-height: normal;
+}
+#title {
+    display: inline;
+    margin: 0 0 0 0;
+}
 #sprite-area {
-    width: 300px;
-    height: 300px;
+    width: var(--sprite-area-side-lenght);
+    height: var(--sprite-area-side-lenght);
     position: relative;
 }
 #sprite-mask {
-    width: 300px;
-    height: 300px;
+    width: var(--sprite-area-side-lenght);
+    height: var(--sprite-area-side-lenght);
     position: absolute;
     top: 50%;
     left: 50%;
