@@ -1,15 +1,43 @@
-class SpriteAnimation {
+import {State} from './finiteStateMachine.js';
+import {FSM} from './finiteStateMachine.js';
+
+class SpriteAnimation extends State {
+    onKeyDown = new Map();
+    onKeyUp = new Map();
+
     constructor(name, row, begin, end, isLoop) {
+        super();
         this.name = name;
         this.row = row
         this.begin = begin;
         this.end = end;
         this.isLoop = isLoop;
     }
-
     get length() {
         return this.end - this.begin + 1;
     }
+
+    /* Overriding extended State class */
+    setBehaviour = () => {
+        document.addEventListener("keydown", (e) => {
+            this.onKeyDown.forEach((val,key) => {
+                if (e.code != key) return;
+                FSM.transitionTo(val);
+                console.log(`%ckeydown: ${val}`, "color: lime");
+            });
+        });
+        document.addEventListener("keyup", (e) => {
+            this.onKeyUp.forEach((val,key) => {
+                if (e.code != key) return;
+                FSM.transitionTo(val);
+                console.log(`%ckeyup: ${key}`, "color: lime");
+            });
+        });
+    };
+    removeBehaviour = () => {
+        document.removeEventListener("keydown");
+        document.removeEventListener("keyup");
+    };
 }
 
 const SPRITESHEET = {
@@ -128,6 +156,76 @@ $(function() {
         SPRITESHEET.frames.height = height;
         SPRITESHEET.frames.x = Math.floor(spritesheetWidth / width);
         SPRITESHEET.frames.y = Math.floor(spritesheetHeight / height);
+    }
+
+    // Creates a new animation state.
+    $("#button-create").click(function (e) {
+        e.preventDefault();
+
+        const name = $("#input-name").val();
+        const row = $("#input-row").val();
+        const begin = $("#input-begin").val();
+        const end = $("#input-end").val();
+        const id = $("#input-id").val();
+        const isLoop = $("#input-loop").prop("checked");
+
+        if (name === "" || row === "" || begin === "" || end === "") {
+            alert("All fields are mandatory.");
+            return;
+        }
+
+        const anim = new SpriteAnimation(name, row, begin, end, isLoop);
+
+        // Updates animation state if already in FSM.
+        if (id !== "") {
+            FSM.updateState(anim, id);
+            // Updates animation list name.
+            $(".animation-item").each(function () {
+                if ($(this).data("id") == id)
+                    $(this).text(name);
+            });
+            return;
+        }
+
+        // Adds animation state if new.
+        FSM.addState(anim);
+        fillAnimationInfo(null);
+
+        // Adds animation to displayed list.
+        const element = $(`<a href=\"#\" class=\"list-group-item list-group-item-action animation-item\" data-id=\"${anim.id}\">${name}</a>`);
+        $("#animation-list").append(element);
+        // Edit animation eventListener.
+        element.click(function (e) {
+            e.preventDefault();
+            if (!FSM.hasState($(this).data("id"))) return;
+            fillAnimationInfo(FSM.states.get($(this).data("id")));
+        });
+    });
+
+    // Clears Animations' fields.
+    $("#a-new-animation").click(function (e) {
+        e.preventDefault();
+        fillAnimationInfo(null);
+    });
+
+    // Overrides Animations' fields with an animation state's data.
+    function fillAnimationInfo(animation) {
+        if (animation === null) {
+            $("#input-name").val("");
+            $("#input-row").val("");
+            $("#input-begin").val("");
+            $("#input-end").val("");
+            $("#input-id").val("");
+            $("#input-loop").prop("checked", false);
+            return;
+        }
+        
+        $("#input-name").val(animation.name);
+        $("#input-row").val(animation.row);
+        $("#input-begin").val(animation.begin);
+        $("#input-end").val(animation.end);
+        $("#input-id").val(animation.id);
+        $("#input-loop").prop("checked", animation.isLoop);
     }
 
     function play(animation) {
