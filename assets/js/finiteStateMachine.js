@@ -13,7 +13,8 @@ export const FSM = {
     updateState: updateState,
     removeState: removeState,
     transitionTo: transitionTo,
-    hasState: hasState
+    hasState: hasState,
+    getState: getState
 }
 
 function setCurrentState(state) {
@@ -46,4 +47,9 @@ function transitionTo(id) {
 
 function hasState(id) {
     return FSM.states.has(Number(id));
+}
+
+function getState(id) {
+    id = Number(id);
+    return FSM.states.has(id) ? FSM.states.get(id) : null;
 }

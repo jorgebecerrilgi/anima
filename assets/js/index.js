@@ -1,9 +1,41 @@
 import {State} from './finiteStateMachine.js';
 import {FSM} from './finiteStateMachine.js';
 
+class Transition {
+    Types = {
+        "press": 0,
+        "release": 1,
+        "timed": 2
+    };
+
+    constructor(from, to, type, key) {
+        this.from = from;
+        this.to = to;
+        this.type = type;
+        this.key = key;
+    }
+}
+
 class SpriteAnimation extends State {
     onKeyDown = new Map();
     onKeyUp = new Map();
+    transitions = [];
+    hasTransition = (id) => {
+        id = Number(id);
+        return this.transitions.length > id && this.transitions[id] != null;
+    };
+    getTransition = (id) => {
+        id = Number(id);
+        return this.hasTransition(id) ? this.transitions[id] : null;
+    };
+    addTransition = (transition) => {
+        this.transitions.push(transition);
+    };
+    replaceTransition = (id, transition) => {
+        id = Number(id);
+        if (!this.hasTransition(id)) return;
+        this.transitions[id] = transition;
+    };
 
     constructor(name, row, begin, end, isLoop) {
         super();
@@ -15,6 +47,9 @@ class SpriteAnimation extends State {
     }
     get length() {
         return this.end - this.begin + 1;
+    }
+    get transitionsAmount() {
+        return this.transitions.length;
     }
 
     /* Overriding extended State class */
@@ -180,10 +215,7 @@ $(function() {
         if (id !== "") {
             FSM.updateState(anim, id);
             // Updates animation list name.
-            $(".animation-item").each(function () {
-                if ($(this).data("id") == id)
-                    $(this).text(name);
-            });
+            $(`.animation-item[data-id='${id}']`).text(name);
             return;
         }
 
@@ -192,13 +224,108 @@ $(function() {
         fillAnimationInfo(null);
 
         // Adds animation to displayed list.
-        const element = $(`<a href=\"#\" class=\"list-group-item list-group-item-action animation-item\" data-id=\"${anim.id}\">${name}</a>`);
-        $("#animation-list").append(element);
+        const elementAnimation = $(`<a href=\"#\" class=\"list-group-item list-group-item-action animation-item\" data-id=\"${anim.id}\">${name}</a>`);
+        const elementFSM = $(`<a href=\"#\" class=\"list-group-item list-group-item-action animation-item\" data-id=\"${anim.id}\">${name}</a>`);
+        $("#animation-list").append(elementAnimation);
+        $("#fsm-list").append(elementFSM);
+        // Adds a transition list divider, for the new animation-state.
+        console.log(anim.id);
+        if (!$("#transition-lists-wrapper").has(`.transition-list[data-id='${anim.id}']`).length) { // DELETE THIS IF STATEMENT IN RELEASE.
+            const elementTransitionList = $(`<div data-id='${anim.id}'></div>`).addClass("transition-list d-none");
+            console.log(elementTransitionList.data("id"));
+            $("#transition-lists-wrapper").prepend(elementTransitionList);
+        }
+        
         // Edit animation eventListener.
-        element.click(function (e) {
+        elementAnimation.click(function (e) {
             e.preventDefault();
             if (!FSM.hasState($(this).data("id"))) return;
             fillAnimationInfo(FSM.states.get($(this).data("id")));
+        });
+        // Edit state eventListener.
+        elementFSM.click(function (e) {
+            e.preventDefault();
+            let elementID = $(this).data("id");
+            if (!FSM.hasState(elementID)) return;
+            // Only shows selected-state transitions.
+            $(".transition-list.vis").removeClass("vis").addClass("d-none");
+            $(`.transition-list[data-id='${elementID}']`).removeClass("d-none").addClass("vis");
+            // Shows selected-state id.
+            $("#input-fsm-id").val(elementID);
+        });
+    });
+
+    // Creates a new transition for an animation state.
+    $("#button-add-transition").click(function (e) {
+        const id = $("#input-fsm-id").val();
+        if (id === "") return;
+        if (!FSM.hasState(id)) return;
+        if ($(`.transition-list[data-id='${id}']`).has("div.card.edit").length) return;
+
+        // Creates and adds transition card.
+        const transitionID = FSM.getState(id).transitionsAmount;
+        const transitionCard = $(`<div class="card mb-3 edit" data-sub-id='${transitionID}'><div class="card-body"><h5 class="card-title">Run</h5><div class="row my-3"><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">Key</span></div><input class="form-control input-key" type="text" maxlength="0" placeholder="Press here" spellcheck="false"></div></div><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">ID of Next</span></div><input class="form-control input-to" type="number" min="0" placeholder="0"></div></div><div class="col-2"></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='0' type="radio" name="transition-type-${id}-${transitionID}" checked="checked"><label class="form-check-label" for="transition-type-1">On Press</label></div></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='1' type="radio" name="transition-type-${id}-${transitionID}"><label class="form-check-label" for="transition-type-2">On Release</label></div></div></div><button type="button" class="btn btn-link button-edit d-none">Edit</button><button type="button" class="btn btn-success button-save">Save</button><button type="button" class="btn btn-outline-danger button-cancel mx-1">Cancel</button></div></div>`);
+        $(`.transition-list[data-id='${id}']`).append(transitionCard);
+
+        $(".input-key", transitionCard).on("keydown", function(e) {
+            e.preventDefault();
+            $(this).val(e.code);
+        });
+        
+        // Edit button functionality.
+        // Enters edit mode. Enables inputs.
+        $(".button-edit", transitionCard).on("click", function() {
+            if ($(`.transition-list[data-id='${id}']`).has("div.card.edit").length) return;
+
+            $(".button-save", transitionCard).removeClass("d-none");
+            $(".button-cancel", transitionCard).removeClass("d-none");
+            $(".button-edit", transitionCard).addClass("d-none");
+            $("input", transitionCard).prop("disabled", false);
+            $(transitionCard).addClass("edit");
+        });
+        
+        // Cancel button functionality.
+        // Removes card or undoes all changes.
+        $(".button-cancel", transitionCard).on("click", function() {
+            if (FSM.getState(id).hasTransition(transitionID)) {
+                const trans = FSM.getState(id).getTransition(transitionID);
+                console.log(trans);
+                // Resets all input values.
+                $(".input-key", transitionCard).val(trans.key);
+                $(".input-to", transitionCard).val(trans.to);
+                $(`.input-type[data-type='${trans.type}']`, transitionCard).prop("checked", true);
+                // Exits edit mode. Disables inputs.
+                $(".button-save", transitionCard).addClass("d-none");
+                $(".button-cancel", transitionCard).addClass("d-none");
+                $(".button-edit", transitionCard).removeClass("d-none");
+                $("input", transitionCard).prop("disabled", true);
+                $(transitionCard).removeClass("edit");
+            }
+            else {
+                $(transitionCard).remove();
+            }
+        });
+
+        // Save button functionality.
+        // Creates a transition object and adds it to the animation-state object.
+        $(".button-save", transitionCard).on("click", function() {
+            const key = $(".input-key", transitionCard).val();
+            const to = $(".input-to", transitionCard).val();
+            const type = $(".input-type:checked", transitionCard).data("type");
+            const trans = new Transition(id, to, type, key);
+            // Updates or adds transition.
+            if (FSM.getState(id).hasTransition(transitionID)) {
+                FSM.getState(id).replaceTransition(transitionID, trans);
+            }
+            else {
+                FSM.getState(id).addTransition(trans);
+            }
+            // Exits edit mode. Disables inputs.
+            $(".button-save", transitionCard).addClass("d-none");
+            $(".button-cancel", transitionCard).addClass("d-none");
+            $(".button-edit", transitionCard).removeClass("d-none");
+            $("input", transitionCard).prop("disabled", true);
+            $(transitionCard).removeClass("edit");
         });
     });
 
