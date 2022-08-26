@@ -11,6 +11,7 @@ class Transition {
     constructor(from, to, type, key) {
         this.from = from;
         this.to = to;
+        this.toName = FSM.hasState(to) ? FSM.getState(to).name : "Not Available";
         this.type = type;
         this.key = key;
     }
@@ -204,7 +205,7 @@ $(function() {
         const id = $("#input-id").val();
         const isLoop = $("#input-loop").prop("checked");
 
-        if (name === "" || row === "" || begin === "" || end === "") {
+        if (name === "" || name === "Not Available" || row === "" || begin === "" || end === "") {
             alert("All fields are mandatory.");
             return;
         }
@@ -264,7 +265,7 @@ $(function() {
 
         // Creates and adds transition card.
         const transitionID = FSM.getState(id).transitionsAmount;
-        const transitionCard = $(`<div class="card mb-3 edit" data-sub-id='${transitionID}'><div class="card-body"><h5 class="card-title">Run</h5><div class="row my-3"><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">Key</span></div><input class="form-control input-key" type="text" maxlength="0" placeholder="Press here" spellcheck="false"></div></div><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">ID of Next</span></div><input class="form-control input-to" type="number" min="0" placeholder="0"></div></div><div class="col-2"></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='0' type="radio" name="transition-type-${id}-${transitionID}" checked="checked"><label class="form-check-label" for="transition-type-1">On Press</label></div></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='1' type="radio" name="transition-type-${id}-${transitionID}"><label class="form-check-label" for="transition-type-2">On Release</label></div></div></div><button type="button" class="btn btn-link button-edit d-none">Edit</button><button type="button" class="btn btn-success button-save">Save</button><button type="button" class="btn btn-outline-danger button-cancel mx-1">Cancel</button></div></div>`);
+        const transitionCard = $(`<div class="card mb-3 edit" data-sub-id='${transitionID}'><div class="card-body"><h5 class="card-title">New Transition</h5><div class="row my-3"><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">Key</span></div><input class="form-control input-key" type="text" maxlength="0" placeholder="Press here" spellcheck="false"></div></div><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">ID of Next</span></div><input class="form-control input-to" type="number" min="0" placeholder="0"></div></div><div class="col-2"></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='0' type="radio" name="transition-type-${id}-${transitionID}" checked="checked"><label class="form-check-label" for="transition-type-1">On Press</label></div></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='1' type="radio" name="transition-type-${id}-${transitionID}"><label class="form-check-label" for="transition-type-2">On Release</label></div></div></div><button type="button" class="btn btn-link button-edit d-none">Edit</button><button type="button" class="btn btn-success button-save">Save</button><button type="button" class="btn btn-outline-danger button-cancel mx-1">Cancel</button></div></div>`);
         $(`.transition-list[data-id='${id}']`).append(transitionCard);
 
         $(".input-key", transitionCard).on("keydown", function(e) {
@@ -312,6 +313,9 @@ $(function() {
             const key = $(".input-key", transitionCard).val();
             const to = $(".input-to", transitionCard).val();
             const type = $(".input-type:checked", transitionCard).data("type");
+
+            if (key === "" || to === "" || to == id) return;
+
             const trans = new Transition(id, to, type, key);
             // Updates or adds transition.
             if (FSM.getState(id).hasTransition(transitionID)) {
@@ -326,6 +330,8 @@ $(function() {
             $(".button-edit", transitionCard).removeClass("d-none");
             $("input", transitionCard).prop("disabled", true);
             $(transitionCard).removeClass("edit");
+            // Changes card title.
+            $(".card-title", transitionCard).text(trans.toName);
         });
     });
 
