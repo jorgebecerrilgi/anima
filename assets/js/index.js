@@ -7,35 +7,37 @@ class Transition {
         "release": 1,
         "timed": 2
     };
-
+    id;
+    
     constructor(from, to, type, key) {
         this.from = from;
         this.to = to;
-        this.toName = FSM.hasState(to) ? FSM.getState(to).name : "Not Available";
         this.type = type;
         this.key = key;
+        this.toName = FSM.hasState(to) ? FSM.getState(to).name : "Not Available";
     }
 }
 
 class SpriteAnimation extends State {
     onKeyDown = new Map();
     onKeyUp = new Map();
-    transitions = [];
+    transitions = new Map();
+    nextID = 0;
     hasTransition = (id) => {
-        id = Number(id);
-        return this.transitions.length > id && this.transitions[id] != null;
+        return this.transitions.has(Number(id));
     };
     getTransition = (id) => {
         id = Number(id);
-        return this.hasTransition(id) ? this.transitions[id] : null;
+        return this.hasTransition(id) ? this.transitions.get(id) : null;
     };
     addTransition = (transition) => {
-        this.transitions.push(transition);
+        transition.id = this.nextID++;
+        this.transitions.set(transition.id, transition);
     };
     replaceTransition = (id, transition) => {
         id = Number(id);
         if (!this.hasTransition(id)) return;
-        this.transitions[id] = transition;
+        this.transitions.set(id, transition);
     };
 
     constructor(name, row, begin, end, isLoop) {
@@ -48,9 +50,6 @@ class SpriteAnimation extends State {
     }
     get length() {
         return this.end - this.begin + 1;
-    }
-    get transitionsAmount() {
-        return this.transitions.length;
     }
 
     /* Overriding extended State class */
@@ -124,9 +123,19 @@ $(function() {
         const height = $("#input-height").val();
         const isPixelart = $("#input-pixelart").prop("checked");
 
-        if (width === "" || height === "") return;
+        if (width === "" || height === "" || width <=2 || height <=2 || width > SPRITESHEET.width || height > SPRITESHEET.height) return;
 
-        updateFrameSize(parseInt(width), parseInt(height));
+        // Updates the cell border preview.
+        $("#cell-border")
+            .removeClass("d-none")
+            .addClass("show")
+            .width(`${width * 100 / SPRITESHEET.width - 1.5}%`)
+            .height(`${height * 100 / SPRITESHEET.height - 1.5}%`);
+        
+        SPRITESHEET.frames.width = width;
+        SPRITESHEET.frames.height = height;
+        SPRITESHEET.frames.x = Math.floor(SPRITESHEET.width / width);
+        SPRITESHEET.frames.y = Math.floor(SPRITESHEET.height / height);
 
         if (isPixelart){
             $("#spritesheet").addClass("pixelart");
@@ -145,9 +154,15 @@ $(function() {
 
             // Updates spritesheet's image and the sprite's mask size.
             $.when($("#spritesheet").attr("src", uploadedImage)).then(function() {
-                $("#spritesheet").css("width", "").css("height", "");
+                $("#spritesheet")
+                    .css("width", "")
+                    .css("height", "");
                 SPRITESHEET.width = $("#spritesheet").width();
                 SPRITESHEET.height = $("#spritesheet").height();
+                $("#cell-border")
+                    .addClass("d-none")
+                    .css("width", "")
+                    .css("width", "");
                 updateFrameSize();
             });
         });
@@ -168,7 +183,7 @@ $(function() {
         const spriteMask = $("#sprite-mask");
         const longestSide = width > height ? width : height;
         const multiplier = SPRITE_AREA_SIDE_LENGTH / longestSide;
-        
+
         $(spriteMask).css("width", "").css("height", "");
         $(spritesheet).css("width", "").css("height", "");
 
@@ -187,11 +202,6 @@ $(function() {
                 .height(SPRITE_AREA_SIDE_LENGTH)
                 .width(SPRITE_AREA_SIDE_LENGTH * width / height);
         }
-
-        SPRITESHEET.frames.width = width;
-        SPRITESHEET.frames.height = height;
-        SPRITESHEET.frames.x = Math.floor(spritesheetWidth / width);
-        SPRITESHEET.frames.y = Math.floor(spritesheetHeight / height);
     }
 
     // Creates a new animation state.
@@ -264,7 +274,7 @@ $(function() {
         if ($(`.transition-list[data-id='${id}']`).has("div.card.edit").length) return;
 
         // Creates and adds transition card.
-        const transitionID = FSM.getState(id).transitionsAmount;
+        const transitionID = FSM.getState(id).nextID;
         const transitionCard = $(`<div class="card mb-3 edit" data-sub-id='${transitionID}'><div class="card-body"><h5 class="card-title">New Transition</h5><div class="row my-3"><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">Key</span></div><input class="form-control input-key" type="text" maxlength="0" placeholder="Press here" spellcheck="false"></div></div><div class="col-3"><div class="input-group"><div class="input-group-preppend"><span class="input-group-text">ID of Next</span></div><input class="form-control input-to" type="number" min="0" placeholder="0"></div></div><div class="col-2"></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='0' type="radio" name="transition-type-${id}-${transitionID}" checked="checked"><label class="form-check-label" for="transition-type-1">On Press</label></div></div><div class="col-2"><div class="form-check"><input class="form-check-input input-type" data-type='1' type="radio" name="transition-type-${id}-${transitionID}"><label class="form-check-label" for="transition-type-2">On Release</label></div></div></div><button type="button" class="btn btn-link button-edit d-none">Edit</button><button type="button" class="btn btn-success button-save">Save</button><button type="button" class="btn btn-outline-danger button-cancel mx-1">Cancel</button></div></div>`);
         $(`.transition-list[data-id='${id}']`).append(transitionCard);
 
@@ -339,6 +349,16 @@ $(function() {
     $("#a-new-animation").click(function (e) {
         e.preventDefault();
         fillAnimationInfo(null);
+    });
+
+    $("#nav-play-tab").click(function(e) {
+        updateFrameSize(SPRITESHEET.frames.width, SPRITESHEET.frames.height);
+        $("#cell-border").addClass("d-none");
+    });
+
+    $(".nav-default").click(function (e) {
+        updateFrameSize();
+        $("#cell-border.show").removeClass("d-none");
     });
 
     // Overrides Animations' fields with an animation state's data.

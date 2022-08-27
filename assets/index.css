@@ -23,6 +23,11 @@ span {
     transform: translate(-50%, -50%);
     overflow: hidden;
 }
+#cell-border {
+    position: absolute;
+    border-style: dotted;
+    border-color: crimson;
+}
 .pixelart {
     image-rendering: pixelated;
 }

@@ -46,30 +46,31 @@
     </header>
 
     <!-- Spritesheet Area -->
-    <div id="sprite-area" class="mx-auto mb-5">
-        <div id="sprite-mask">
-            <img id="spritesheet" class="pixelart" src="assets/default_spritesheet.png" alt="Spritesheet">
+    <div id="sprite-area" class="mx-auto mb-5 sprite-area">
+        <div id="sprite-mask" class="sprite-mask">
+            <div id="cell-border" class="d-none"></div>
+            <img id="spritesheet" class="spritesheet pixelart" src="assets/default_spritesheet.png" alt="Spritesheet">
         </div>
     </div>
 
     <!-- Menu Tabs -->
     <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button"
-                role="tab" aria-controls="nav-home" aria-selected="true">Settings</button>
-            <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button"
-                role="tab" aria-controls="nav-profile" aria-selected="false">Animations</button>
-            <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button"
-                role="tab" aria-controls="nav-contact" aria-selected="false">State Machine</button>
-            <button class="nav-link" id="nav-disabled-tab" data-bs-toggle="tab" data-bs-target="#nav-disabled" type="button"
-                role="tab" aria-controls="nav-disabled" aria-selected="false" disabled>Play</button>
+            <button class="nav-link nav-default active" id="nav-settings-tab" data-bs-toggle="tab" data-bs-target="#nav-settings" type="button"
+                role="tab" aria-controls="nav-sttings" aria-selected="true">Settings</button>
+            <button class="nav-link nav-default" id="nav-animations-tab" data-bs-toggle="tab" data-bs-target="#nav-animations" type="button"
+                role="tab" aria-controls="nav-animations" aria-selected="false">Animations</button>
+            <button class="nav-link nav-default" id="nav-state-machine-tab" data-bs-toggle="tab" data-bs-target="#nav-state-machine" type="button"
+                role="tab" aria-controls="nav-state-machine" aria-selected="false">State Machine</button>
+            <button class="nav-link" id="nav-play-tab" data-bs-toggle="tab" data-bs-target="#nav-play" type="button"
+                role="tab" aria-controls="nav-play" aria-selected="false">Play</button>
         </div>
     </nav>
 
     <!-- Menu Content -->
     <div class="tab-content" id="nav-tabContent">
         <!-- Settings Tab -->
-        <div class="tab-pane fade show active py-4" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
+        <div class="tab-pane fade show active py-4" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab" tabindex="0">
             <div class="row gy-2 w-50 mb-2">
                 <!-- Width and Height -->
                 <div class="input-group w-75">
@@ -99,7 +100,7 @@
             <button id="button-done" class="btn btn-secondary" type="button">Done</button>
         </div>
         <!-- Animations Tab -->
-        <div class="tab-pane fade py-4" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
+        <div class="tab-pane fade py-4" id="nav-animations" role="tabpanel" aria-labelledby="nav-animations-tab" tabindex="0">
             <div class="row">
                 <!-- List -->
                 <div id="animation-list" class="col-2 list-group px-2">
@@ -154,11 +155,11 @@
             </div>
         </div>
         <!-- State Machine Tab -->
-        <div class="tab-pane fade py-4" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
+        <div class="tab-pane fade py-4" id="nav-state-machine" role="tabpanel" aria-labelledby="nav-state-machine-tab" tabindex="0">
             <div class="row">
                 <!-- List -->
                 <div id="fsm-list" class="col-2 list-group px-2">
-                    <a id="a-new-animation" href="#" class="list-group-item list-group-item-primary fw-semibold active" aria-current="true">New Animation</a>
+                    <a id="a-new-animation" href="#" class="list-group-item list-group-item-primary fw-semibold active" aria-current="true">Configuration</a>
                 </div>
                 <!-- Transitions -->
                 <div id="transition-lists-wrapper" class="col">
@@ -175,8 +176,8 @@
             </div>
         </div>
         <!-- Play Tab -->
-        <div class="tab-pane fade" id="nav-disabled" role="tabpanel" aria-labelledby="nav-disabled-tab" tabindex="0">
-            Play.
+        <div class="tab-pane fade" id="nav-play" role="tabpanel" aria-labelledby="nav-play-tab" tabindex="0">
+            Play
         </div>
     </div>
 

@@ -5,6 +5,7 @@ export class State {
 }
 
 export const FSM = {
+    startingState: null,
     curr: null,
     nexId: 0,
     states: new Map(),
@@ -25,6 +26,9 @@ function setCurrentState(state) {
 function addState(state) {
     state.id = FSM.nexId++;
     FSM.states.set(state.id, state);
+    if (FSM.startingState === null) {
+        FSM.startingState = state;
+    }
 }
 
 function updateState(state, id) {
