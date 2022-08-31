@@ -2,10 +2,10 @@ import {State} from './finiteStateMachine.js';
 import {FSM} from './finiteStateMachine.js';
 
 class Transition {
-    Types = {
-        "press": 0,
-        "release": 1,
-        "timed": 2
+    static Types = {
+        keyDown: 0,
+        keyUp: 1,
+        timed: 2
     };
     id;
     
@@ -23,6 +23,29 @@ class SpriteAnimation extends State {
     onKeyUp = new Map();
     transitions = new Map();
     nextID = 0;
+    displayFrame = (frame) => {
+        if (frame < this.begin || frame > this.end) return;
+        $("#spritesheet").css("top", `-${100 * this.row}%`).css("left", `-${100 * frame}%`);
+    };
+    intervalID = null;
+    play = () => {
+        this.currFrame = this.begin;
+        this.displayFrame(this.currFrame++)
+        this.intervalID = setInterval(() => {
+            if (this.currFrame <= this.end) {
+                this.displayFrame(this.currFrame++);
+            }
+            else if (this.isLoop) {
+                this.currFrame = this.begin;
+                this.displayFrame(this.currFrame++);
+            }
+        }, 83);
+    };
+    stop = () => {
+        if (this.intervalID === null) return;
+        clearInterval(this.intervalID)
+        this.intervalID = null;
+    }
     hasTransition = (id) => {
         return this.transitions.has(Number(id));
     };
@@ -33,12 +56,32 @@ class SpriteAnimation extends State {
     addTransition = (transition) => {
         transition.id = this.nextID++;
         this.transitions.set(transition.id, transition);
+        // Adds new keys.
+        this._addTransitionKeys(transition);
     };
     replaceTransition = (id, transition) => {
         id = Number(id);
         if (!this.hasTransition(id)) return;
+        // Removes previous keys.
+        const prevTransition = this.transitions.get(id);
+        if (prevTransition.type === Transition.Types.keyDown) {
+            this.onKeyDown.delete(prevTransition.key);
+        } 
+        else if (prevTransition.type === Transition.Types.keyUp) {
+            this.onKeyUp.delete(prevTransition.key);
+        }
+        // Replaces transition and adds new keys.
         this.transitions.set(id, transition);
+        this._addTransitionKeys(transition);
     };
+    _addTransitionKeys = (transition) => {
+        if (transition.type === Transition.Types.keyDown) {
+            this.onKeyDown.set(transition.key, transition.to);
+        } 
+        else if (transition.type === Transition.Types.keyUp) {
+            this.onKeyUp.set(transition.key, transition.to);
+        }
+    }
 
     constructor(name, row, begin, end, isLoop) {
         super();
@@ -47,31 +90,36 @@ class SpriteAnimation extends State {
         this.begin = begin;
         this.end = end;
         this.isLoop = isLoop;
-    }
-    get length() {
-        return this.end - this.begin + 1;
+        this.length = end - begin + 1;
+        this.currFrame = begin;
     }
 
     /* Overriding extended State class */
     setBehaviour = () => {
-        document.addEventListener("keydown", (e) => {
-            this.onKeyDown.forEach((val,key) => {
-                if (e.code != key) return;
-                FSM.transitionTo(val);
-                console.log(`%ckeydown: ${val}`, "color: lime");
-            });
-        });
-        document.addEventListener("keyup", (e) => {
-            this.onKeyUp.forEach((val,key) => {
-                if (e.code != key) return;
-                FSM.transitionTo(val);
-                console.log(`%ckeyup: ${key}`, "color: lime");
-            });
+        this.play();
+        const kd = this.onKeyDown;
+        const ku = this.onKeyUp;
+        $("#input-play").keydown(function (e) {
+            e.preventDefault();
+            if (e.originalEvent.repeat) return;
+            const nextID = kd.get(e.code); // aparentemente this.onkeydown no funciona.
+            if (nextID !== undefined) {
+                FSM.transitionTo(nextID);
+                console.log(`%cTransition to: ${FSM.getState(nextID).name}`, "color: lime");
+            }
+        }).keyup(function (e) {
+            e.preventDefault();
+            if (e.originalEvent.repeat) return;
+            const nextID = ku.get(e.code);
+            if (nextID !== undefined) {
+                FSM.transitionTo(nextID);
+                console.log(`%cTransition to: ${FSM.getState(nextID).name}`, "color: lime");
+            }
         });
     };
     removeBehaviour = () => {
-        document.removeEventListener("keydown");
-        document.removeEventListener("keyup");
+        this.stop();
+        $("#input-play").off();
     };
 }
 
@@ -240,10 +288,8 @@ $(function() {
         $("#animation-list").append(elementAnimation);
         $("#fsm-list").append(elementFSM);
         // Adds a transition list divider, for the new animation-state.
-        console.log(anim.id);
         if (!$("#transition-lists-wrapper").has(`.transition-list[data-id='${anim.id}']`).length) { // DELETE THIS IF STATEMENT IN RELEASE.
             const elementTransitionList = $(`<div data-id='${anim.id}'></div>`).addClass("transition-list d-none");
-            console.log(elementTransitionList.data("id"));
             $("#transition-lists-wrapper").prepend(elementTransitionList);
         }
         
@@ -261,9 +307,20 @@ $(function() {
             // Only shows selected-state transitions.
             $(".transition-list.vis").removeClass("vis").addClass("d-none");
             $(`.transition-list[data-id='${elementID}']`).removeClass("d-none").addClass("vis");
+            $("#config").addClass("d-none");
+            $("#button-save").addClass("d-none");
             // Shows selected-state id.
             $("#input-fsm-id").val(elementID);
+            // Un-hides UI.
+            $("#button-add-transition").removeClass("d-none");
+            $("#fsm-id").removeClass("d-none");
         });
+    });
+
+    // Clears Animations' fields.
+    $("#a-new-animation").click(function (e) {
+        e.preventDefault();
+        fillAnimationInfo(null);
     });
 
     // Creates a new transition for an animation state.
@@ -345,20 +402,35 @@ $(function() {
         });
     });
 
-    // Clears Animations' fields.
-    $("#a-new-animation").click(function (e) {
+    $("#a-configuration").click(function (e) {
         e.preventDefault();
-        fillAnimationInfo(null);
+        $(".transition-list.vis").removeClass("vis").addClass("d-none");
+        $("#fsm-id").addClass("d-none");
+        $("#button-add-transition").addClass("d-none");
+        $("#config").removeClass("d-none")
+        $("#button-save").removeClass("d-none");
+    });
+
+    $("#button-save").click(function (e) {
+        const startAnimationID = $("#input-start-animation").val();
+        if (startAnimationID === "" || !FSM.hasState(startAnimationID)) {
+            alert("El ID ingresado no es válido.");
+        }
+
+        FSM.setStartingState(startAnimationID);
     });
 
     $("#nav-play-tab").click(function(e) {
         updateFrameSize(SPRITESHEET.frames.width, SPRITESHEET.frames.height);
         $("#cell-border").addClass("d-none");
+        FSM.start();
     });
 
     $(".nav-default").click(function (e) {
         updateFrameSize();
+        $("#spritesheet").css("top", "").css("left", "");
         $("#cell-border.show").removeClass("d-none");
+        FSM.stop();
     });
 
     // Overrides Animations' fields with an animation state's data.

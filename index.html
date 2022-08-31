@@ -159,25 +159,37 @@
             <div class="row">
                 <!-- List -->
                 <div id="fsm-list" class="col-2 list-group px-2">
-                    <a id="a-new-animation" href="#" class="list-group-item list-group-item-primary fw-semibold active" aria-current="true">Configuration</a>
+                    <a id="a-configuration" href="#" class="list-group-item list-group-item-primary fw-semibold active" aria-current="true">Configuration</a>
                 </div>
                 <!-- Transitions -->
                 <div id="transition-lists-wrapper" class="col">
+                    <!-- Configuration Controls -->
+                    <div id="config">
+                        <!-- Starting Animation ID -->
+                        <div class="input-group mb-2 w-25">
+                            <div class="input-group-preppend">
+                                <span class="input-group-text">Start Animation ID</span>
+                            </div>
+                            <input id="input-start-animation" class="form-control" type="number" min="0" placeholder="0">
+                        </div>
+                        <!-- Save Configuration -->
+                        <button id="button-save" class="btn btn-secondary" type="button">Save</button>
+                    </div>
                     <!-- Animation Id -->
-                    <div class="input-group mb-2 w-25">
+                    <div id="fsm-id" class="input-group mb-2 w-25 d-none">
                         <div class="input-group-preppend">
                             <span class="input-group-text fw-semibold text-muted">ID</span>
                         </div>
                         <input id="input-fsm-id" class="form-control fw-bold text-muted" type="number" placeholder="" disabled readonly>
                     </div>
                     <!-- Create Transition -->
-                    <button id="button-add-transition" class="btn btn-secondary" type="button">Add Transition</button>
+                    <button id="button-add-transition" class="btn btn-secondary d-none" type="button">Add Transition</button>
                 </div>
             </div>
         </div>
         <!-- Play Tab -->
-        <div class="tab-pane fade" id="nav-play" role="tabpanel" aria-labelledby="nav-play-tab" tabindex="0">
-            Play
+        <div class="tab-pane fade py-4" id="nav-play" role="tabpanel" aria-labelledby="nav-play-tab" tabindex="0">
+            <input id="input-play" class="form-control" type="text" maxlength="0" placeholder="Press here to control character" spellcheck="false">
         </div>
     </div>
 

@@ -9,13 +9,22 @@ export const FSM = {
     curr: null,
     nexId: 0,
     states: new Map(),
+    setStartingState: setStartingState,
     setCurrentState: setCurrentState,
     addState: addState,
     updateState: updateState,
     removeState: removeState,
     transitionTo: transitionTo,
     hasState: hasState,
-    getState: getState
+    getState: getState,
+    start: start,
+    stop: stop
+}
+
+function setStartingState(id) {
+    id = Number(id)
+    if (!FSM.hasState(id)) return;
+    FSM.startingState = FSM.getState(id);
 }
 
 function setCurrentState(state) {
@@ -57,3 +66,16 @@ function getState(id) {
     id = Number(id);
     return FSM.states.has(id) ? FSM.states.get(id) : null;
 }
+
+function start() {
+    if (FSM.startingState === null) return;
+    FSM.setCurrentState(FSM.startingState);
+}
+
+function stop() {
+    if (FSM.curr === null) return;
+    FSM.curr.removeBehaviour();
+    FSM.curr = null;
+}
+
+console.log("%cFinite State Machine", "color: lime;", FSM);

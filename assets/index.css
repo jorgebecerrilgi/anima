@@ -28,6 +28,11 @@ span {
     border-style: dotted;
     border-color: crimson;
 }
+#spritesheet {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 .pixelart {
     image-rendering: pixelated;
 }
